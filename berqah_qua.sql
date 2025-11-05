@@ -147,3 +147,29 @@ SELECT
         WHEN bayar = 0 THEN 'Belum Bayar'
     END AS status_bayar
 FROM pesanan;
+
+-- statement procedure
+DELIMITER //
+CREATE PROCEDURE tambah_pesanan (
+    IN p_id_pelanggan INT,
+    IN p_total_harga DECIMAL(12,2),
+    IN p_bayar DECIMAL(12,2)
+)
+BEGIN
+    INSERT INTO pesanan (id_pelanggan, tanggal_pesanan, total_harga, status_pesanan)
+    VALUES (p_id_pelanggan, CURDATE(), p_total_harga,
+        IF(p_bayar >= p_total_harga, 'Lunas', 'Belum Lunas'));
+END //
+DELIMITER ;
+
+-- statement trigger
+DELIMITER //
+CREATE TRIGGER kurangi_stok_produk
+AFTER INSERT ON detail_pesanan
+FOR EACH ROW
+BEGIN
+    UPDATE produk
+    SET stok = stok - NEW.jumlah
+    WHERE id_produk = NEW.id_produk;
+END //
+DELIMITER ;
